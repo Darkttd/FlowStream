@@ -31,7 +31,15 @@ namespace FlowStream
 
                     var json = JValue.Parse(line);
 
-                    Console.WriteLine(json.ToString());
+                    foreach (var page in json["pages"].Array())
+                    {
+                        Console.WriteLine(page.AsString());
+                    }
+
+                    foreach (var link in json["links"].Array())
+                    {
+                        Console.WriteLine("{0} to {1}", link["from"].AsString(), link["to"].AsString());
+                    }
                 }
             }
             catch (Exception e)
