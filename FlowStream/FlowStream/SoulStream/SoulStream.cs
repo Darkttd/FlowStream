@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ScenarioGraphDrawer.ScenarioDrawer
 {
-    public class GraphicDrawer
+    public class SoulStream
     {
         private const string RootNodeName = "&_RootNode";
 
@@ -27,7 +27,7 @@ namespace ScenarioGraphDrawer.ScenarioDrawer
         private Node RootNode; // 시작점이 없는 노드들을의 시작점으로 취급하는 가상의 노드
         private Dictionary<string, Node> NodeDictionary;
 
-        public GraphicDrawer()
+        public SoulStream()
         {
             RootNode = new Node(RootNodeName);
             NodeDictionary = new Dictionary<string, Node>();
