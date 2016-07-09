@@ -15,30 +15,30 @@ namespace FlowStream
     public partial class Form1 : Form
     {
         private Graphics graphics = null;
+        private SoulStream soulStream = null;
 
         public Form1()
         {
             InitializeComponent();
             graphics = Graphics.FromHwnd(Handle);
+            soulStream = new SoulStream();
 
             try
-            {   // Open the text file using a stream reader.
+            {
+                // Open the text file using a stream reader.
                 using (StreamReader sr = new StreamReader("sample_data.json"))
                 {
-                    // Read the stream to a string, and write the string to the console.
-                    String line = sr.ReadToEnd();
-                    //Console.WriteLine(line);
-
-                    var json = JValue.Parse(line);
+                    // Read the stream to a string, and try json parse.
+                    var json = JValue.Parse(sr.ReadToEnd());
 
                     foreach (var page in json["pages"].Array())
                     {
-                        Console.WriteLine(page.AsString());
+                        soulStream.AddNode(page.AsString());
                     }
 
                     foreach (var link in json["links"].Array())
                     {
-                        Console.WriteLine("{0} to {1}", link["from"].AsString(), link["to"].AsString());
+                        soulStream.AddLink(link["from"].AsString(), link["to"].AsString());
                     }
                 }
             }
