@@ -3,24 +3,24 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Xml.Linq;
 
 namespace FlowStream
 {
     public partial class Form1 : Form
     {
-        private Graphics graphics = null;
         private SoulStream soulStream = null;
 
         public Form1()
         {
             InitializeComponent();
-            graphics = Graphics.FromHwnd(Handle);
             soulStream = new SoulStream();
 
             try
@@ -49,37 +49,48 @@ namespace FlowStream
                 Console.WriteLine("The file could not be read:");
                 Console.WriteLine(e.Message);
             }
-        }
 
-        protected override void OnSizeChanged(EventArgs e)
-        {
-            base.OnSizeChanged(e);
+            using (StreamWriter sw = new StreamWriter("output.html"))
+            {
+                sw.Write(@"<html>
+  <head>
+    <meta charset=""utf-8"">
+    <title>FlowStream</title>
+    <link href=""./vnv.css"" rel=""stylesheet"">
+  </head>  <body>
+  <svg width=""1000"" height=""1000"">");
 
-            if (graphics != null)
-                graphics.Dispose();
+                foreach (SoulStream.Node node in soulStream.GetNodes())
+                {
+                    if (node.Name == SoulStream.RootNodeName)
+                        continue;
 
-            graphics = Graphics.FromHwnd(Handle);
-        }
+                    var nodeClass = new XElement(XName.Get("g"),
+                        new XAttribute(XName.Get("class"), "node"),
+                        new XAttribute(XName.Get("style"), "opacity: 1;"),
+                        new XAttribute(XName.Get("transform"), "translate(" + (node.xPos * 100 + 50) + "," + node.depth * 50 + ")"));
 
-        protected override void OnPaint(PaintEventArgs e)
-        {
-            base.OnPaint(e);
+                    var rect =
+                        new XElement(XName.Get("rect"),
+                        new XAttribute(XName.Get("class"), "node"),
+                        new XAttribute(XName.Get("x"), -37.5),
+                        new XAttribute(XName.Get("y"), -18),
+                        new XAttribute(XName.Get("rx"), 5),
+                        new XAttribute(XName.Get("ry"), 5),
+                        new XAttribute(XName.Get("width"), 75),
+                        new XAttribute(XName.Get("height"), 36));
 
-            Brush b = new SolidBrush(Color.Black);
+                    //rect.Add(text);
+                    nodeClass.Add(rect);
 
-            Pen pen = new Pen(b, 20.5f);
-            Point p1 = new Point(0, 0);
-            Point p2 = new Point(this.Width, this.Height);
+                    sw.Write(nodeClass.ToString());
+                }
 
-            graphics.Clear(Color.White);
-            graphics.DrawLine(pen, p1, p2);
-        }
+                sw.Write(@"  </body>
+</html>");
+            }
 
-        protected override void OnMouseWheel(MouseEventArgs e)
-        {
-            base.OnMouseWheel(e);
-
-            Console.WriteLine(e.Delta);
+            Process.Start("chrome", "output.html");
         }
     }
 }

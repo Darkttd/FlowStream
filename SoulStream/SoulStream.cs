@@ -8,7 +8,7 @@ namespace FlowStream
 {
     public class SoulStream
     {
-        private const string RootNodeName = "?RootNode";
+        public const string RootNodeName = "?RootNode";
 
         public enum Method
         {
@@ -78,6 +78,11 @@ namespace FlowStream
 
             fromNode.to.Add(toNode);
             toNode.from.Add(fromNode);
+        }
+
+        public IList<Node>GetNodes()
+        {
+            return NodeDictionary.Values.ToList().AsReadOnly();
         }
 
         /// <summary>
@@ -215,15 +220,15 @@ namespace FlowStream
 
         private void CalculateXpos(Method method)
         {
-            //switch (method)
-            //{
-            //    case Method.Mountain:
-            //        {
-            //            List<Node> nodes = 
-            //        }
+            switch (method)
+            {
+                case Method.Mountain:
+                    {
 
-            //        break;
-            //}
+                    }
+
+                    break;
+            }
         }
     }
 }
