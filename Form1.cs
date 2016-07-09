@@ -26,7 +26,7 @@ namespace FlowStream
             try
             {
                 // Open the text file using a stream reader.
-                using (StreamReader sr = new StreamReader("sample_data.json"))
+                using (StreamReader sr = new StreamReader("simple_data.json"))
                 {
                     // Read the stream to a string, and try json parse.
                     var json = JValue.Parse(sr.ReadToEnd());
@@ -41,6 +41,8 @@ namespace FlowStream
                         soulStream.AddLink(link["from"].AsString(), link["to"].AsString());
                     }
                 }
+
+                soulStream.MakeFlow();
             }
             catch (Exception e)
             {
