@@ -8,7 +8,7 @@ namespace FlowStream
 {
     public class SoulStream
     {
-        private const string RootNodeName = "&_RootNode";
+        private const string RootNodeName = "?RootNode";
 
         public enum Method
         {
