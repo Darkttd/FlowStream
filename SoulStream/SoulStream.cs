@@ -10,6 +10,11 @@ namespace FlowStream
     {
         private const string RootNodeName = "&_RootNode";
 
+        public enum Method
+        {
+            Mountain,
+        }
+
         public class Node
         {
             public string Name { get; private set; }
@@ -19,6 +24,9 @@ namespace FlowStream
             public List<Node> toLoop;
 
             public int depth;
+            public int power; // 현재 노드가 있는 줄의 최대 깊이
+
+            public int xPos; // x 좌표
 
             public Node(string name)
             {
@@ -29,10 +37,12 @@ namespace FlowStream
                 toLoop = new List<Node>();
 
                 depth = int.MinValue;
+                power = int.MinValue;
+                xPos = 0;
             }
         }
 
-        private Node RootNode; // 시작점이 없는 노드들을의 시작점으로 취급하는 가상의 노드
+        public Node RootNode { get; private set; } // 시작점이 없는 노드들을의 시작점으로 취급하는 가상의 노드
         private Dictionary<string, Node> NodeDictionary;
 
         public SoulStream()
@@ -73,7 +83,7 @@ namespace FlowStream
         /// <summary>
         /// 노드의 입력이 끝났다면, 노드의 배치를 결정하는 함수
         /// </summary>
-        public void MakeFlow()
+        public void MakeFlow(Method method = Method.Mountain)
         {
             // 먼저 부모 없는 노드의 부모를 루트로 설정합니다.
             // <TODO> 부모 없이 닫혀있는 노드집합은 현재 생각하지 않습니다.
@@ -93,10 +103,16 @@ namespace FlowStream
             // 각 노드의 깊이를 계산합니다.
             CalculateDepth(RootNode);
 
+            // 각 노드의 Power값을 계산합니다.
+            CalculatePower();
+
+            // 각 노드의 X 좌표값을 계산합니다.
+            CalculateXpos(method);
+
             // Test
             foreach (Node n in NodeDictionary.Values)
             {
-                Console.WriteLine(n.Name + ", depth = " + n.depth);
+                Console.WriteLine(n.Name + ", depth = " + n.depth + ", power = " + n.power);
                 Console.Write("    childs: ");
 
                 foreach (Node c in n.to)
@@ -119,6 +135,7 @@ namespace FlowStream
 
         private void SeperateLoopLink(Node node, Stack<Node> stack)
         {
+            // 루프를 판단하는 함수
             if (stack == null)
                 stack = new Stack<Node>();
 
@@ -131,8 +148,8 @@ namespace FlowStream
                 if (stack.Contains(child))
                 {
                     var loopedNode = stack.FirstOrDefault(v => v == child);
-                    loopedNode.fromLoop.Add(child);
-                    loopedNode.from.Remove(child);
+                    loopedNode.fromLoop.Add(node);
+                    loopedNode.from.Remove(node);
 
                     node.toLoop.Add(child);
                     node.to.Remove(child);
@@ -148,6 +165,8 @@ namespace FlowStream
 
         private void CalculateDepth(Node node, int depth = 0)
         {
+            // 깊이를 계산하는 함수
+
             if (node.depth < depth)
             {
                 node.depth = depth;
@@ -157,6 +176,54 @@ namespace FlowStream
                     CalculateDepth(child, depth + 1);
                 }
             }
+        }
+
+        private void CalculatePower()
+        {
+            // Power를 계산하는 함수
+
+            List<Node> routeNode = new List<Node>(NodeDictionary.Values).OrderByDescending(v => v.depth).ToList();
+
+            foreach (Node node in routeNode)
+            {
+                if (node.power >= node.depth)
+                {
+                    continue;
+                }
+
+                node.power = node.depth;
+
+                foreach (Node p in node.from)
+                {
+                    CalculatePowerRecursive(p, node.power - (node.depth - p.depth - 1));
+                }
+            }
+        }
+
+        private void CalculatePowerRecursive(Node n, int power)
+        {
+            if (n.power < power)
+            {
+                n.power = power;
+
+                foreach (Node p in n.from)
+                {
+                    CalculatePowerRecursive(p, n.power - (n.depth - p.depth - 1));
+                }
+            }
+        }
+
+        private void CalculateXpos(Method method)
+        {
+            //switch (method)
+            //{
+            //    case Method.Mountain:
+            //        {
+            //            List<Node> nodes = 
+            //        }
+
+            //        break;
+            //}
         }
     }
 }
