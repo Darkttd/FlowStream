@@ -57,7 +57,8 @@ namespace FlowStream
     <meta charset=""utf-8"">
     <title>FlowStream</title>
     <link href=""./vnv.css"" rel=""stylesheet"">
-  </head>  <body>
+  </head>
+  <body>
   <svg width=""1000"" height=""1000"">");
 
                 foreach (SoulStream.Node node in soulStream.GetNodes())
@@ -80,8 +81,25 @@ namespace FlowStream
                         new XAttribute(XName.Get("width"), 75),
                         new XAttribute(XName.Get("height"), 36));
 
-                    //rect.Add(text);
+                    var label =
+                        new XElement(XName.Get("g"),
+                        new XAttribute(XName.Get("class"), "label"),
+                        new XAttribute(XName.Get("transform"), "translate(0,0)"));
+
+                    var text =
+                        new XElement(XName.Get("text"));
+
+                    var tspan =
+                        new XElement(XName.Get("tspan"),
+                        new XAttribute(XName.Get("space"), "preserve"),
+                        new XAttribute(XName.Get("dy"), "lem"),
+                        new XAttribute(XName.Get("x"), "1"));
+
+                    tspan.Add(node.Name);
+                    text.Add(tspan);
+                    label.Add(text);
                     nodeClass.Add(rect);
+                    nodeClass.Add(label);
 
                     sw.Write(nodeClass.ToString());
                 }
@@ -90,7 +108,7 @@ namespace FlowStream
 </html>");
             }
 
-            Process.Start("chrome", "output.html");
+            Process.Start("chrome", "./output.html");
         }
     }
 }

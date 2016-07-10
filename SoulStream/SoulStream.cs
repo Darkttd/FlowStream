@@ -117,8 +117,8 @@ namespace FlowStream
             // Test
             foreach (Node n in NodeDictionary.Values)
             {
-                Console.WriteLine(n.Name + ", depth = " + n.depth + ", power = " + n.power);
-                Console.Write("    childs: ");
+                Console.WriteLine(n.Name + ", depth = " + n.depth + ", power = " + n.power + ", xPos = " + n.xPos);
+                //Console.Write("    childs: ");
 
                 foreach (Node c in n.to)
                 {
@@ -224,7 +224,43 @@ namespace FlowStream
             {
                 case Method.Mountain:
                     {
+                        Queue<Node> CurrentNodeSet = new Queue<Node>();
+                        Queue<Node> NextNodeSet = new Queue<Node>();
 
+                        CurrentNodeSet.Enqueue(RootNode);
+                        int currentDepth = 0;
+
+                        while (CurrentNodeSet.Count > 0)
+                        {
+                            int xPos = 0;
+
+                            while (CurrentNodeSet.Count > 0)
+                            {
+                                Node n = CurrentNodeSet.Dequeue();
+
+                                if (n.depth == currentDepth)
+                                {
+                                    n.xPos = xPos;
+
+                                    foreach (Node next in n.to)
+                                    {
+                                        if (!NextNodeSet.Contains(next))
+                                            NextNodeSet.Enqueue(next);
+                                    }
+                                }
+                                else
+                                {
+                                    if (!NextNodeSet.Contains(n))
+                                        NextNodeSet.Enqueue(n);
+                                }
+
+                                xPos++;
+                            }
+
+                            CurrentNodeSet = NextNodeSet;
+                            NextNodeSet = new Queue<Node>();
+                            currentDepth++;
+                        }
                     }
 
                     break;
