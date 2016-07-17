@@ -9,6 +9,7 @@ namespace FlowStream
     public class SoulStream
     {
         public const string RootNodeName = "?RootNode";
+        public const string HiddenNodePrefix = "?Hidden";
 
         public enum Method
         {
@@ -114,28 +115,31 @@ namespace FlowStream
             // 각 노드의 X 좌표값을 계산합니다.
             CalculateXpos(method);
 
+            // 브랜치의 마지막 노드는 다음 노드의 직전위치로 depth 를 변경합니다.
+            RepositionDepth();
+
             // Test
-            foreach (Node n in NodeDictionary.Values)
-            {
-                Console.WriteLine(n.Name + ", depth = " + n.depth + ", power = " + n.power + ", xPos = " + n.xPos);
-                //Console.Write("    childs: ");
+            //foreach (Node n in NodeDictionary.Values)
+            //{
+            //    Console.WriteLine(n.Name + ", depth = " + n.depth + ", power = " + n.power + ", xPos = " + n.xPos);
+            //    //Console.Write("    childs: ");
 
-                foreach (Node c in n.to)
-                {
-                    Console.Write(c.Name + ", ");
-                }
+            //    foreach (Node c in n.to)
+            //    {
+            //        Console.Write(c.Name + ", ");
+            //    }
 
-                Console.Write("[");
+            //    Console.Write("[");
 
-                foreach (Node c in n.toLoop)
-                {
-                    Console.Write(c.Name + ", ");
-                }
+            //    foreach (Node c in n.toLoop)
+            //    {
+            //        Console.Write(c.Name + ", ");
+            //    }
 
-                Console.Write("]");
+            //    Console.Write("]");
 
-                Console.WriteLine();
-            }
+            //    Console.WriteLine();
+            //}
         }
 
         private void SeperateLoopLink(Node node, Stack<Node> stack)
@@ -214,6 +218,18 @@ namespace FlowStream
                 foreach (Node p in n.from)
                 {
                     CalculatePowerRecursive(p, n.power - (n.depth - p.depth - 1));
+                }
+            }
+        }
+
+        private void RepositionDepth()
+        {
+            foreach (Node n in NodeDictionary.Values)
+            {
+                Console.WriteLine(n.Name + " => " + (n.to.Count > 0 ? n.to.Max(v => v.from.Count) : -1));
+                if (n.to.Count > 1 || (n.to.Count > 0 && n.to.Max(v => v.from.Count) > 1))
+                {
+                    n.depth = n.to.Min(v => v.depth) - 1;
                 }
             }
         }
