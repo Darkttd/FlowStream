@@ -108,7 +108,7 @@ namespace FlowStream
 </html>");
             }
 
-            Process.Start("chrome", "./output.html");
+            Process.Start("chrome", Directory.GetCurrentDirectory() + "/output.html");
         }
     }
 }
