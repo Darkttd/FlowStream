@@ -129,7 +129,7 @@ namespace FlowStream
             }
 
             // 루프를 판단해서 별개의 연결로 취급합니다.
-            SeperateLoopLink(RootNode, null);
+            SeperateLoopLink(RootNode, null, null);
 
             // 각 노드의 깊이를 계산합니다.
             CalculateDepth(RootNode);
@@ -147,13 +147,17 @@ namespace FlowStream
             CalculateXpos(method);
         }
 
-        private void SeperateLoopLink(Node node, Stack<Node> stack)
+        private void SeperateLoopLink(Node node, Stack<Node> stack, List<Node> visited)
         {
             // 루프를 판단하는 함수
             if (stack == null)
                 stack = new Stack<Node>();
 
+            if (visited == null)
+                visited = new List<Node>();
+
             stack.Push(node);
+            visited.Add(node);
 
             for (int i = node.to.Count - 1; i >= 0; i--)
             {
@@ -170,7 +174,8 @@ namespace FlowStream
                 }
                 else
                 {
-                    SeperateLoopLink(child, stack);
+                    if (!visited.Contains(child))
+                        SeperateLoopLink(child, stack, visited);
                 }
             }
 

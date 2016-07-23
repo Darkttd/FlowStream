@@ -26,7 +26,7 @@ namespace FlowStream
             try
             {
                 // Open the text file using a stream reader.
-                using (StreamReader sr = new StreamReader("simple_data.json"))
+                using (StreamReader sr = new StreamReader("sample_data.json"))
                 {
                     // Read the stream to a string, and try json parse.
                     var json = JValue.Parse(sr.ReadToEnd());
@@ -59,7 +59,7 @@ namespace FlowStream
     <link href=""./vnv.css"" rel=""stylesheet"">
   </head>
   <body>
-  <svg width=""1000"" height=""1000"">");
+  <svg width=""10000"" height=""10000"">");
 
                 Func<SoulStream.Node, int> GetXPos = node => node.xPos * 100 + 50;
                 Func<SoulStream.Node, int> GetYPos = node => node.depth * 70;
