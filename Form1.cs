@@ -61,8 +61,8 @@ namespace FlowStream
   <body>
   <svg width=""10000"" height=""10000"">");
 
-                Func<SoulStream.Node, int> GetXPos = node => node.xPos * 100 + 50;
-                Func<SoulStream.Node, int> GetYPos = node => node.depth * 70;
+                Func<SoulStream.Node, int> GetXPos = node => node.xPos * 200 + 50;
+                Func<SoulStream.Node, int> GetYPos = node => node.depth * 140;
 
                 var arrowHeadDefs = new XElement(XName.Get("defs"));
 
