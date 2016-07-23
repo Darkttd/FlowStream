@@ -13,7 +13,6 @@ namespace FlowStream
 
         public enum Method
         {
-            //Mountain,
             Tetris,
         }
 
@@ -230,12 +229,49 @@ namespace FlowStream
 
         private void RepositionDepth()
         {
+            int hiddenNodeCount = 0;
+
+            List<Node> hiddenNodeList = new List<Node>();
+
             foreach (Node n in NodeDictionary.Values)
             {
                 if (n.to.Count > 1 || (n.to.Count > 0 && n.to.Max(v => v.from.Count) > 1))
                 {
-                    n.depth = n.to.Min(v => v.depth) - 1;
+                    // 갈라지는 마지막 노드의 depth 를 재조정
+
+                    int lastDepth = n.to.Min(v => v.depth) - 1;
+
+                    if ((n.from.Count > 1 || (n.from.Count > 0 && n.from.Max(v => v.to.Count) > 1))
+                        && n.depth < lastDepth)
+                    {
+                        // 단, 현재 노드가 유일한 노드이고, 차지하는 깊이가 2 이상이면, 임시 노드를 생성한다
+
+                        string nodeName = HiddenNodePrefix + (hiddenNodeCount++);
+                        Node hiddenNode = new Node(nodeName);
+                        hiddenNode.from.Add(n);
+                        hiddenNode.to = n.to;
+                        hiddenNode.depth = lastDepth;
+                        n.to = new List<Node>();
+                        n.to.Add(hiddenNode);
+
+                        foreach (Node nextNode in hiddenNode.to)
+                        {
+                            nextNode.from.Remove(n);
+                            nextNode.from.Add(hiddenNode);
+                        }
+
+                        hiddenNodeList.Add(hiddenNode);
+                    }
+                    else
+                    {
+                        n.depth = lastDepth;
+                    }
                 }
+            }
+
+            foreach (Node n in hiddenNodeList)
+            {
+                NodeDictionary.Add(n.Name, n);
             }
         }
 
@@ -298,49 +334,6 @@ namespace FlowStream
         {
             switch (method)
             {
-                //case Method.Mountain:
-                //    {
-                        //Queue<Node> CurrentNodeSet = new Queue<Node>();
-                        //Queue<Node> NextNodeSet = new Queue<Node>();
-
-                        //CurrentNodeSet.Enqueue(RootNode);
-                        //int currentDepth = 0;
-
-                        //while (CurrentNodeSet.Count > 0)
-                        //{
-                        //    int xPos = 0;
-
-                        //    while (CurrentNodeSet.Count > 0)
-                        //    {
-                        //        Node n = CurrentNodeSet.Dequeue();
-
-                        //        if (n.depth == currentDepth)
-                        //        {
-                        //            n.xPos = xPos;
-
-                        //            foreach (Node next in n.to)
-                        //            {
-                        //                if (!NextNodeSet.Contains(next))
-                        //                    NextNodeSet.Enqueue(next);
-                        //            }
-                        //        }
-                        //        else
-                        //        {
-                        //            if (!NextNodeSet.Contains(n))
-                        //                NextNodeSet.Enqueue(n);
-                        //        }
-
-                        //        xPos++;
-                        //    }
-
-                        //    CurrentNodeSet = NextNodeSet;
-                        //    NextNodeSet = new Queue<Node>();
-                        //    currentDepth++;
-                        //}
-                    //}
-
-                    //break;
-
                 case Method.Tetris:
                     {
                         int maxDepth = 0;
@@ -425,7 +418,6 @@ namespace FlowStream
                                 }
                             }
                         }
-
                     }
                     break;
             }
