@@ -144,13 +144,14 @@ namespace FlowStream
 
                         int yPosFix = -18;
 
-                        if (toNode.Name.StartsWith(SoulStream.HiddenNodePrefix))
+                        bool isHidden = toNode.Name.StartsWith(SoulStream.HiddenNodePrefix);
+                        if (isHidden)
                             yPosFix = -yPosFix;
 
                         var path = new XElement(XName.Get("path"),
                             new XAttribute(XName.Get("class"), "path"),
                             new XAttribute(XName.Get("d"), "M" + GetXPos(node) + "," + (GetYPos(node) + 18) + "L" + GetXPos(toNode) + "," + (GetYPos(toNode) + yPosFix)),
-                            new XAttribute(XName.Get("marker-end"), "url(/#commonArrowHead)"),
+                            new XAttribute(XName.Get("marker-end"), isHidden ? "" : "url(#commonArrowHead)"),
                             new XAttribute(XName.Get("style"), "fill: none;"));
 
                         edgePathClass.Add(path);
