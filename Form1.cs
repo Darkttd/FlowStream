@@ -41,14 +41,14 @@ namespace FlowStream
                         soulStream.AddLink(link["from"].AsString(), link["to"].AsString());
                     }
                 }
-
-                soulStream.MakeFlow();
             }
             catch (Exception e)
             {
                 Console.WriteLine("The file could not be read:");
                 Console.WriteLine(e.Message);
             }
+
+            soulStream.MakeFlow();
 
             using (StreamWriter sw = new StreamWriter("output.html"))
             {

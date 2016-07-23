@@ -13,7 +13,8 @@ namespace FlowStream
 
         public enum Method
         {
-            Mountain,
+            //Mountain,
+            Tetris,
         }
 
         public class Node
@@ -43,8 +44,33 @@ namespace FlowStream
             }
         }
 
+        private class NodeBlock
+        {
+            public int depthFrom;
+            public int depthTo;
+            public int xPos;
+
+            public List<Node> includeNodes;
+
+            public List<NodeBlock> fromBlock;
+            public List<NodeBlock> toBlock;
+
+            public NodeBlock()
+            {
+                depthFrom = -1;
+                depthTo = -1;
+                xPos = 0;
+
+                includeNodes = new List<Node>();
+
+                fromBlock = new List<NodeBlock>();
+                toBlock = new List<NodeBlock>();
+            }
+        }
+
         public Node RootNode { get; private set; } // 시작점이 없는 노드들을의 시작점으로 취급하는 가상의 노드
         private Dictionary<string, Node> NodeDictionary;
+        private List<NodeBlock> NodeBlockList;
 
         public SoulStream()
         {
@@ -89,7 +115,7 @@ namespace FlowStream
         /// <summary>
         /// 노드의 입력이 끝났다면, 노드의 배치를 결정하는 함수
         /// </summary>
-        public void MakeFlow(Method method = Method.Mountain)
+        public void MakeFlow(Method method = Method.Tetris)
         {
             // 먼저 부모 없는 노드의 부모를 루트로 설정합니다.
             // <TODO> 부모 없이 닫혀있는 노드집합은 현재 생각하지 않습니다.
@@ -112,34 +138,14 @@ namespace FlowStream
             // 각 노드의 Power값을 계산합니다.
             CalculatePower();
 
-            // 각 노드의 X 좌표값을 계산합니다.
-            CalculateXpos(method);
-
             // 브랜치의 마지막 노드는 다음 노드의 직전위치로 depth 를 변경합니다.
             RepositionDepth();
 
-            // Test
-            //foreach (Node n in NodeDictionary.Values)
-            //{
-            //    Console.WriteLine(n.Name + ", depth = " + n.depth + ", power = " + n.power + ", xPos = " + n.xPos);
-            //    //Console.Write("    childs: ");
+            // 노드를 블럭 단위로 묶습니다.
+            BindNodeBlocks();
 
-            //    foreach (Node c in n.to)
-            //    {
-            //        Console.Write(c.Name + ", ");
-            //    }
-
-            //    Console.Write("[");
-
-            //    foreach (Node c in n.toLoop)
-            //    {
-            //        Console.Write(c.Name + ", ");
-            //    }
-
-            //    Console.Write("]");
-
-            //    Console.WriteLine();
-            //}
+            // 각 노드의 X 좌표값을 계산합니다.
+            CalculateXpos(method);
         }
 
         private void SeperateLoopLink(Node node, Stack<Node> stack)
@@ -226,10 +232,64 @@ namespace FlowStream
         {
             foreach (Node n in NodeDictionary.Values)
             {
-                Console.WriteLine(n.Name + " => " + (n.to.Count > 0 ? n.to.Max(v => v.from.Count) : -1));
                 if (n.to.Count > 1 || (n.to.Count > 0 && n.to.Max(v => v.from.Count) > 1))
                 {
                     n.depth = n.to.Min(v => v.depth) - 1;
+                }
+            }
+        }
+
+        private void BindNodeBlocks()
+        {
+            NodeBlockList = new List<NodeBlock>();
+
+            foreach (Node n in NodeDictionary.Values)
+            {
+                if (n.to.Count != 1 || (n.to.Count > 0 && n.to.Max(v => v.from.Count) > 1))
+                {
+                    NodeBlock nodeBlock = new NodeBlock();
+
+                    int maxDepth = int.MinValue;
+                    int minDepth = int.MaxValue;
+                    Node prevNode = n;
+
+                    do
+                    {
+                        nodeBlock.includeNodes.Add(prevNode);
+
+                        if (maxDepth < prevNode.depth)
+                            maxDepth = prevNode.depth;
+                        if (minDepth > prevNode.depth)
+                            minDepth = prevNode.depth;
+
+                        if (prevNode.from.Count != 1)
+                            break;
+                        else
+                            prevNode = prevNode.from[0];
+                    } while (prevNode.to.Count == 1);
+
+                    nodeBlock.depthFrom = minDepth;
+                    nodeBlock.depthTo = maxDepth;
+                    // 역순으로 추가한 뒤 뒤집었으므로,
+                    // nodeBlock.includeNodes 는 depth 순서대로입니다.
+                    nodeBlock.includeNodes.Reverse();
+
+                    NodeBlockList.Add(nodeBlock);
+                }
+            }
+
+            foreach (NodeBlock nodeBlock in NodeBlockList)
+            {
+                // 노드블록끼리의 연결을 링크합니다
+
+                Node n = nodeBlock.includeNodes[0];
+
+                foreach (Node prevBlock in n.from)
+                {
+                    NodeBlock includePrev = NodeBlockList.FirstOrDefault(v => v.includeNodes.Contains(prevBlock));
+
+                    nodeBlock.fromBlock.Add(includePrev);
+                    includePrev.toBlock.Add(nodeBlock);
                 }
             }
         }
@@ -238,47 +298,135 @@ namespace FlowStream
         {
             switch (method)
             {
-                case Method.Mountain:
+                //case Method.Mountain:
+                //    {
+                        //Queue<Node> CurrentNodeSet = new Queue<Node>();
+                        //Queue<Node> NextNodeSet = new Queue<Node>();
+
+                        //CurrentNodeSet.Enqueue(RootNode);
+                        //int currentDepth = 0;
+
+                        //while (CurrentNodeSet.Count > 0)
+                        //{
+                        //    int xPos = 0;
+
+                        //    while (CurrentNodeSet.Count > 0)
+                        //    {
+                        //        Node n = CurrentNodeSet.Dequeue();
+
+                        //        if (n.depth == currentDepth)
+                        //        {
+                        //            n.xPos = xPos;
+
+                        //            foreach (Node next in n.to)
+                        //            {
+                        //                if (!NextNodeSet.Contains(next))
+                        //                    NextNodeSet.Enqueue(next);
+                        //            }
+                        //        }
+                        //        else
+                        //        {
+                        //            if (!NextNodeSet.Contains(n))
+                        //                NextNodeSet.Enqueue(n);
+                        //        }
+
+                        //        xPos++;
+                        //    }
+
+                        //    CurrentNodeSet = NextNodeSet;
+                        //    NextNodeSet = new Queue<Node>();
+                        //    currentDepth++;
+                        //}
+                    //}
+
+                    //break;
+
+                case Method.Tetris:
                     {
-                        Queue<Node> CurrentNodeSet = new Queue<Node>();
-                        Queue<Node> NextNodeSet = new Queue<Node>();
+                        int maxDepth = 0;
 
-                        CurrentNodeSet.Enqueue(RootNode);
-                        int currentDepth = 0;
-
-                        while (CurrentNodeSet.Count > 0)
+                        foreach (NodeBlock nb in NodeBlockList)
                         {
-                            int xPos = 0;
+                            if (maxDepth < nb.depthTo)
+                                maxDepth = nb.depthTo;
+                        }
 
-                            while (CurrentNodeSet.Count > 0)
+                        List<bool>[] isFilled = new List<bool>[maxDepth + 1];
+
+                        for (int i = 0; i < isFilled.Length; ++i)
+                        {
+                            isFilled[i] = new List<bool>();
+                        }
+
+                        LinkedList<NodeBlock> CurrentNodeBlock = new LinkedList<NodeBlock>();
+                        List<NodeBlock> AlreadyRegistered = new List<NodeBlock>();
+
+                        CurrentNodeBlock.AddLast(NodeBlockList.FirstOrDefault(v => v.includeNodes.Contains(RootNode)));
+                        AlreadyRegistered.Add(CurrentNodeBlock.First.Value);
+
+                        while (CurrentNodeBlock.Count > 0)
+                        {
+                            NodeBlock nodeBlock = CurrentNodeBlock.First.Value;
+                            CurrentNodeBlock.RemoveFirst();
+
+                            int targetX = 0;
+                            do
                             {
-                                Node n = CurrentNodeSet.Dequeue();
+                                bool isPlaced = true;
 
-                                if (n.depth == currentDepth)
+                                for (int depth = nodeBlock.depthFrom; depth <= nodeBlock.depthTo; ++depth)
                                 {
-                                    n.xPos = xPos;
-
-                                    foreach (Node next in n.to)
+                                    if (isFilled[depth].Count > targetX && isFilled[depth][targetX])
                                     {
-                                        if (!NextNodeSet.Contains(next))
-                                            NextNodeSet.Enqueue(next);
+                                        // 이미 차 있으므로, 중단하고 다음 targetX 를 찾는다.
+                                        isPlaced = false;
+                                        break;
                                     }
                                 }
-                                else
+
+                                if (isPlaced)
                                 {
-                                    if (!NextNodeSet.Contains(n))
-                                        NextNodeSet.Enqueue(n);
+                                    // 위치를 찾은 경우, x 좌표를 대입한다.
+
+                                    nodeBlock.xPos = targetX;
+
+                                    for (int depth = nodeBlock.depthFrom; depth <= nodeBlock.depthTo; ++depth)
+                                    {
+                                        while (isFilled[depth].Count <= targetX)
+                                        {
+                                            isFilled[depth].Add(false);
+                                        }
+
+                                        isFilled[depth][targetX] = true;
+                                    }
+
+                                    foreach (Node n in nodeBlock.includeNodes)
+                                    {
+                                        n.xPos = targetX;
+                                    }
+
+                                    // 그리고 중단
+                                    break;
                                 }
 
-                                xPos++;
+                                // 찾지 못한 경우, 계속해서 탐색
+                                ++targetX;
+
+                            } while (true);
+
+                            for (int i = nodeBlock.toBlock.Count - 1; i >= 0; --i)
+                            {
+                                NodeBlock next = nodeBlock.toBlock[i];
+
+                                if (!AlreadyRegistered.Contains(next))
+                                {
+                                    CurrentNodeBlock.AddFirst(next);
+                                    AlreadyRegistered.Add(next);
+                                }
                             }
-
-                            CurrentNodeSet = NextNodeSet;
-                            NextNodeSet = new Queue<Node>();
-                            currentDepth++;
                         }
-                    }
 
+                    }
                     break;
             }
         }
